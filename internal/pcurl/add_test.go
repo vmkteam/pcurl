@@ -138,6 +138,46 @@ func TestAdd_UpdateExisting_Decline(t *testing.T) {
 	assert.Equal(t, []string{"Accept: old"}, p.Headers, "headers should be unchanged")
 }
 
+func TestAdd_HostConflict_Confirm(t *testing.T) {
+	ex, _ := newTestExecuter(t)
+	c := &Config{Profiles: map[string]*Profile{
+		"example.com": {MatchHosts: []string{"example.com"}, Headers: []string{"Accept: old"}},
+	}}
+	require.NoError(t, ex.CM.Save(c))
+	var out bytes.Buffer
+
+	err := ex.Add(
+		[]string{"https://example.com", "-H", "Authorization: Bearer new"},
+		AddOptions{Name: "fgagsarasg"},
+		&out, strings.NewReader("y\nk\n"), false,
+	)
+	require.NoError(t, err)
+
+	c, _ = ex.CM.Load()
+	assert.NotNil(t, c.FindProfile("example.com"), "original profile should remain")
+	assert.NotNil(t, c.FindProfile("fgagsarasg"), "new profile should be created")
+	assert.Contains(t, out.String(), "already used by profile")
+}
+
+func TestAdd_HostConflict_Decline(t *testing.T) {
+	ex, _ := newTestExecuter(t)
+	c := &Config{Profiles: map[string]*Profile{
+		"example.com": {MatchHosts: []string{"example.com"}, Headers: []string{"Accept: old"}},
+	}}
+	require.NoError(t, ex.CM.Save(c))
+	var out bytes.Buffer
+
+	err := ex.Add(
+		[]string{"https://example.com", "-H", "Authorization: Bearer new"},
+		AddOptions{Name: "fgagsarasg"},
+		&out, strings.NewReader("n\n"), false,
+	)
+	require.NoError(t, err)
+
+	c, _ = ex.CM.Load()
+	assert.Nil(t, c.FindProfile("fgagsarasg"), "new profile should not be created")
+}
+
 func TestAdd_WithCookies_Force(t *testing.T) {
 	ex, kc := newTestExecuter(t)
 	var out bytes.Buffer

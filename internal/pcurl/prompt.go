@@ -156,6 +156,37 @@ func (p *Prompter) confirmUpdateText(profileName string) (bool, error) {
 	return strings.ToLower(strings.TrimSpace(answer)) != "n", nil
 }
 
+// ConfirmHostConflict asks whether to create a new profile when the host
+// is already covered by a differently-named profile.
+func (p *Prompter) ConfirmHostConflict(newName, existingName, host string) (bool, error) {
+	if p.Interactive {
+		return p.confirmHostConflictHuh(newName, existingName, host)
+	}
+	return p.confirmHostConflictText(newName, existingName, host)
+}
+
+func (p *Prompter) confirmHostConflictHuh(newName, existingName, host string) (bool, error) {
+	var confirm bool
+	err := huh.NewConfirm().
+		Title(fmt.Sprintf("Host %q is already used by profile %q. Create new profile %q anyway?", host, existingName, newName)).
+		Affirmative("Yes").
+		Negative("No").
+		Value(&confirm).
+		Run()
+	return confirm, err
+}
+
+func (p *Prompter) confirmHostConflictText(newName, existingName, host string) (bool, error) {
+	fmt.Fprintf(p.Out, "Host %q is already used by profile %q. Create new profile %q anyway? [y/N]: ", host, existingName, newName)
+
+	answer, err := p.readLine()
+	if err != nil {
+		return false, err
+	}
+
+	return strings.ToLower(strings.TrimSpace(answer)) == "y", nil
+}
+
 // PickHeaders shows non-secret headers and lets the user toggle selection.
 func (p *Prompter) PickHeaders(headers []curlparse.Header) error {
 	if p.Interactive {

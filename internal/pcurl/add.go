@@ -17,14 +17,10 @@ type AddOptions struct {
 }
 
 func confirmExisting(profileName, host string, c *Config, prompt *Prompter, force bool) (existing *Profile, declined bool, err error) {
-	existing = c.FindProfile(profileName)
-	if existing == nil {
-		if name := c.FindProfileByHost(host); name != "" {
-			existing = c.FindProfile(name)
+	if existing = c.FindProfile(profileName); existing != nil {
+		if force {
+			return existing, false, nil
 		}
-	}
-
-	if existing != nil && !force {
 		ok, promptErr := prompt.ConfirmUpdate(profileName)
 		if promptErr != nil {
 			return nil, false, promptErr
@@ -32,9 +28,26 @@ func confirmExisting(profileName, host string, c *Config, prompt *Prompter, forc
 		if !ok {
 			return existing, true, nil
 		}
+		return existing, false, nil
 	}
 
-	return existing, false, nil
+	otherName := c.FindProfileByHost(host)
+	if otherName == "" || otherName == profileName {
+		return nil, false, nil
+	}
+
+	if force {
+		return nil, false, nil
+	}
+
+	ok, promptErr := prompt.ConfirmHostConflict(profileName, otherName, host)
+	if promptErr != nil {
+		return nil, false, promptErr
+	}
+	if !ok {
+		return nil, true, nil
+	}
+	return nil, false, nil
 }
 
 func pickHeaders(parsed *curlparse.Result, opts AddOptions, prompt *Prompter) error {

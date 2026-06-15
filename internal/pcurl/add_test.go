@@ -148,14 +148,14 @@ func TestAdd_HostConflict_Confirm(t *testing.T) {
 
 	err := ex.Add(
 		[]string{"https://example.com", "-H", "Authorization: Bearer new"},
-		AddOptions{Name: "fgagsarasg"},
+		AddOptions{Name: "alt-account"},
 		&out, strings.NewReader("y\nk\n"), false,
 	)
 	require.NoError(t, err)
 
 	c, _ = ex.CM.Load()
 	assert.NotNil(t, c.FindProfile("example.com"), "original profile should remain")
-	assert.NotNil(t, c.FindProfile("fgagsarasg"), "new profile should be created")
+	assert.NotNil(t, c.FindProfile("alt-account"), "new profile should be created")
 	assert.Contains(t, out.String(), "already used by profile")
 }
 
@@ -169,13 +169,13 @@ func TestAdd_HostConflict_Decline(t *testing.T) {
 
 	err := ex.Add(
 		[]string{"https://example.com", "-H", "Authorization: Bearer new"},
-		AddOptions{Name: "fgagsarasg"},
+		AddOptions{Name: "alt-account"},
 		&out, strings.NewReader("n\n"), false,
 	)
 	require.NoError(t, err)
 
 	c, _ = ex.CM.Load()
-	assert.Nil(t, c.FindProfile("fgagsarasg"), "new profile should not be created")
+	assert.Nil(t, c.FindProfile("alt-account"), "new profile should not be created")
 }
 
 func TestAdd_WithCookies_Force(t *testing.T) {

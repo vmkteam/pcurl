@@ -31,11 +31,16 @@ func confirmExisting(profileName, host string, c *Config, prompt *Prompter, forc
 		return existing, false, nil
 	}
 
+	// No profile named profileName: check whether another profile already
+	// covers this host. (otherName == profileName is unreachable here — such a
+	// profile would have matched FindProfile above — but kept for clarity.)
 	otherName := c.FindProfileByHost(host)
 	if otherName == "" || otherName == profileName {
 		return nil, false, nil
 	}
 
+	// --force creates the new profile without prompting; the existing
+	// same-host profile is left untouched.
 	if force {
 		return nil, false, nil
 	}

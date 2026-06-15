@@ -142,15 +142,3 @@ func (cm *ConfigManager) Save(c *Config) error {
 	enc.Indent = ""
 	return enc.Encode(c)
 }
-
-func checkPermissions(path string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-	perm := info.Mode().Perm()
-	if perm&0077 != 0 {
-		return fmt.Errorf("%s has permissions %04o, want 0600; fix with: chmod 600 %s", path, perm, path)
-	}
-	return nil
-}

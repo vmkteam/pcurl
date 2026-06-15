@@ -13,9 +13,13 @@ var SecretHeaderPrefixes = []string{
 	"x-csrf-token", "x-xsrf-token",
 }
 
+// headerSecChUA is the User-Agent Client Hints header; it is also the common
+// prefix of its -mobile / -platform variants.
+const headerSecChUA = "sec-ch-ua"
+
 // BrowserNoiseHeaders are headers added by browsers, not needed for API calls.
 var BrowserNoiseHeaders = []string{
-	"sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform",
+	headerSecChUA, headerSecChUA + "-mobile", headerSecChUA + "-platform",
 	"sec-fetch-dest", "sec-fetch-mode", "sec-fetch-site",
 	"sentry-trace", "baggage",
 	"priority",
@@ -84,10 +88,13 @@ func IsOptionalHeader(name string) bool {
 	return false
 }
 
+// maskedValue is the placeholder shown in place of a short secret value.
+const maskedValue = "****"
+
 // MaskValue returns a masked version of a secret value for display.
 func MaskValue(v string) string {
 	if len(v) <= 8 {
-		return "****"
+		return maskedValue
 	}
 	return v[:4] + "..." + v[len(v)-4:]
 }

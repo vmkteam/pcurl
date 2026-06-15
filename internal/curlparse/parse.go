@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+// headerAuthorization is the canonical Authorization header name.
+const headerAuthorization = "Authorization"
+
 // Result holds the result of parsing a curl command line.
 type Result struct {
 	URL     string
@@ -57,7 +60,7 @@ func Parse(args []string) *Result {
 			i++
 			if i < len(args) {
 				r.Headers = append(r.Headers, Header{
-					Name:   "Authorization",
+					Name:   headerAuthorization,
 					Value:  "Basic " + args[i],
 					Secret: true,
 				})
